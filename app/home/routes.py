@@ -2,12 +2,13 @@ from flask import Blueprint, render_template, request
 import cv2 as cv
 from werkzeug.utils import secure_filename
 import os
+import uuid
 
 from app.home.helpers import resize, image_weight
 
-
 home = Blueprint('home', __name__,
-                template_folder='templates')
+                template_folder='templates',
+                static_folder='static')
 
 @home.route('/', methods=["GET", "POST"])
 def index():
@@ -36,8 +37,14 @@ def index():
         for image in image_generator:
             new_image += image
         combined_image = new_image.astype("uint8")
-        cv.imwrite('out.jpg', combined_image)
+        filename = str(uuid.uuid4())
+        cv.imwrite(f'app/static/{filename}.jpg', combined_image)
         
-        return 'success'
+        return render_template('home/image.html', image=f'{filename}.jpg')
 
     return render_template('home/index.html')
+
+@home.route('/out', methods=["GET"])
+def show():
+    return render_template('home/image.html')
+        
